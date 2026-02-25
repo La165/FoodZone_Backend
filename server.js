@@ -60,6 +60,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const router = require("./routes");
+const db = require('./db');
 
 const app = express();
 
@@ -77,11 +78,7 @@ app.use(
 
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => console.log("✔ MongoDB Connected"))
-  .catch((err) => console.log("❌ MongoDB Error:", err));
+
 
 // Routes
 app.use("/api/v1/products", router);
