@@ -290,7 +290,7 @@ const forgotPasswordController = async (req, res) => {
     user.resetTokenExpiry = expiry;
     await user.save();
 
-    const resetLink = `http://localhost:9008/reset-password?token=${token}&email=${email}`;
+    const resetLink = `https://food-zone-frontend.vercel.app/reset-password?token=${token}&email=${email}`;
 
     // Nodemailer setup
     const transporter = nodemailer.createTransport({
