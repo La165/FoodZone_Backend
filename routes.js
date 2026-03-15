@@ -10,10 +10,11 @@ const { getAllVegProducts, getAllNonVegProducts, getAllSweets, getAllDrinkProduc
       getOrderedProducts,
       getOrdersSummary,
       getOrderDetails,
-      forgotPasswordController,
-      resetPasswordController,
+     
       updateProduct,
-      deleteProduct} = require("./controller");
+      deleteProduct,
+      forgotPasswordController,
+      resetPasswordController} = require("./controller");
 
 
 const authMiddleware = require("./authorization");

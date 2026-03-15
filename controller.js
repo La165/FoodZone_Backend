@@ -268,42 +268,40 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
+// controllers/authController.js
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
-const bcrypt = require("bcryptjs"); // for hashing passwords
 const { userSchema } = require("./schema");
-
 const userModel = mongoose.model("user", userSchema);
 
 // -------------------- Forgot Password --------------------
-const forgotPasswordController = async (req, res) => {
+forgotPasswordController = async (req, res) => {
   try {
     const { email } = req.body;
-
     const user = await userModel.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const token = uuidv4();
-    const expiry = Date.now() + 3600000; // 1 hour
-
+    const token = crypto.randomBytes(32).toString("hex");
     user.resetToken = token;
-    user.resetTokenExpiry = expiry;
+    user.resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
     await user.save();
 
     const resetLink = `https://food-zone-frontend.vercel.app/reset-password?token=${token}&email=${email}`;
+    console.log("Reset Link:", resetLink); // for debugging
 
     // Nodemailer setup
     const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // App Password
+      },
+    });
 
     await transporter.sendMail({
-      from: '"Food App" <jlalitha2001@gmail.com>',
+      from: `"Food App" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Reset Password",
       html: `<p>You requested a password reset.</p>
@@ -319,21 +317,19 @@ const forgotPasswordController = async (req, res) => {
 };
 
 // -------------------- Reset Password --------------------
-const resetPasswordController = async (req, res) => {
+resetPasswordController = async (req, res) => {
   try {
     const { email, token, password } = req.body;
 
     const user = await userModel.findOne({ email, resetToken: token });
     if (!user) return res.status(400).json({ message: "Invalid token" });
-    if (user.resetTokenExpiry < Date.now())
+    if (user.resetTokenExpiry < new Date())
       return res.status(400).json({ message: "Token expired" });
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetToken = null;
     user.resetTokenExpiry = null;
-
     await user.save();
 
     res.json({ message: "Password reset successful" });
@@ -344,10 +340,8 @@ const resetPasswordController = async (req, res) => {
 };
 
 
-
-
 module.exports = {
-  createVegProducts,resetPasswordController,forgotPasswordController,
+  createVegProducts,
   createNonVegProducts,
   saveSweets,
   saveDrinkProducts,
@@ -373,5 +367,7 @@ module.exports = {
   getAllOrderedProducts,
   getOrderedProducts: fetchAllOrderedProducts,
   getOrdersSummary,
-  getOrderDetails,updateProduct,deleteProduct
+  getOrderDetails,
+  resetPasswordController,
+  forgotPasswordController
 };
